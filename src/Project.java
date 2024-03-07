@@ -14,6 +14,10 @@ class Algorithm {
       this.height = height;
       this.left = left;
     }
+
+    public String toString() {
+      return Integer.toString(height);
+    }
   }
 
   public Algorithm(String input) throws FileNotFoundException {
@@ -72,57 +76,67 @@ class Algorithm {
 
 
   // O(N²)
+
+  // SOLUTION
+  // dp[i] = dp[i] if dp[i + 1] <= dp[i]
+  // dp[i] = dp[i] + min(floor((dp[i-1] - dp[i]) / 2), dp[i + 1] - dp[i]) if dp[i] < dp[i - 1] + 1 && dp[i] < dp[i + 1] && i > 0
+  //         dp[i - 1] = dp[i - 1] - min(floor((dp[i-1] - dp[i]) / 2), dp[i + 1] - dp[i])
+  // dp[i] = dp[i] + ceil((dp[i+1] - dp[i]) / 2) if dp[i] > dp[i + 1] && i < n - 1
+
+
   public int calculateSteps(int caseToCalculate) {
-    DpBlock[] dp = buildDp(cases.get(caseToCalculate));
+    DpBlock[] dp2 = buildDp(cases.get(caseToCalculate));
+    int[] dp = cases.get(caseToCalculate);
 
     // Steps to move from on higher tower to a lower tower, is the difference / 2, rounded to ceil
 
-    int current = 0;
+    int n = dp.length;
+    int i = 0;
     int steps = 0;
     int executed = 0;
+    int spaceSince = 0;
 
-    while (current < dp.length) {
+    // I have discovered that if there is a group of towers with the same size, and then it is a higher tower,
+    // there is a formula to get the step amount.
+    int max_i = 0;
+    while (i < n) {
+      if (i > max_i) max_i = i;
+      System.out.print("\r" + i + "-" + max_i + "-" + executed + "-" + (executed > n * n));
       executed += 1;
-      if (current == dp.length - 1) break; // We finished :D
-      if (dp[current].height < dp[current + 1].height) {
-        if (current == 0) {
-          int requiredSteps = (int) Math.ceil((dp[current + 1].height - dp[current].height) / 2.0);
-          dp[current].height += requiredSteps;
-          dp[current + 1].left += requiredSteps;
-          dp[current + 1].height -= requiredSteps;
-          steps += requiredSteps;
-          current += 1;
-        } else {
-          if (dp[current - 1].height <= dp[current - 1].left) {
-            int requires = dp[current + 1].height - dp[current].height;
-            // We move all possible from the left, then the required from the right
-            int availableFromLeft = (int) Math.floor((dp[current - 1].height - dp[current].height) / 2.0);
-            int canGet = Math.min(availableFromLeft, dp[current - 1].left - dp[current - 1].height);
-            int fromLeft = Math.min(requires, canGet);
-            dp[current].height += fromLeft;
-            dp[current - 1].height -= fromLeft;
-            dp[current].left -= fromLeft;
-            steps += fromLeft;
-          }
-          if (dp[current].height >= dp[current + 1].height) {
-            current += 1;
-            continue;
-          }
+      if (i == n - 1) break; // We finished :D
+      if (dp[i] >= dp[i + 1]) {
+        i += 1;
+        if (dp[i + 1] < dp[i]) spaceSince = i + 1;
+        continue;
+      }
 
-          int requiredSteps = (int) Math.ceil((dp[current + 1].height - dp[current].height) / 2.0);
-          dp[current].height += requiredSteps;
-          dp[current + 1].height -= requiredSteps;
-          dp[current + 1].left -= requiredSteps;
-          steps += requiredSteps;
-          if (dp[current].height > dp[current - 1].height) current -= 1;
-          else current += 1;
+      int difference = dp[i + 1] - dp[i];
+      int canGetFromRight = (int) Math.ceil((dp[i + 1] - dp[i]) / 2.0);
+      int canGetFromLeft = i == 0 ? 0 : (int) Math.floor((dp[i - 1] - dp[i]) / 2.0);
+
+      if (i > 0 && dp[i] < dp[i - 1] + 1 && dp[i] < dp[i + 1] && canGetFromLeft >= difference) { // Can get from the left
+        dp[i] += difference;
+        dp[i - 1] -= difference;
+        steps += difference;
+        i++;
+      } else if (dp[i] < dp[i + 1] && i < n - 1) { // Can get from the right
+        dp[i] += canGetFromRight;
+        dp[i + 1] -= canGetFromRight;
+        steps += canGetFromRight;
+        if (i == 0 || dp[i - 1] >= dp[i]) {
+          i++;
+        } else {
+          i--;
         }
-      } else {
-        current += 1;
       }
     }
 
+    System.out.println("Result: " + Arrays.toString(dp));
+
     System.out.printf("%s -> %s\n", dp.length, executed);
+
+    for (int k = 0; k < n - 1; k++) assert dp[k] >= dp[k + 1];
+
     return steps;
   }
 
@@ -149,17 +163,19 @@ class AlgorithmTester {
     Algorithm algorithm = new Algorithm(input);
     Scanner outputScanner = new Scanner(new FileReader(output));
     for (int caseNumber = 0; caseNumber < algorithm.getCasesAmount(); caseNumber++) {
+      System.out.println("=".repeat(10));
       int expectedSolution = outputScanner.nextInt();
-      System.out.println("Test case: " + Arrays.toString(algorithm.getCase(caseNumber)));
       long init = System.nanoTime();
       int calculatedSolution = algorithm.calculateSteps(caseNumber);
-      System.out.printf("Took %sms\n", (double) (System.nanoTime() - init) / 1000000);
+      System.out.printf("Case " + caseNumber + " took %sms\n", (double) (System.nanoTime() - init) / 1000000);
       if (expectedSolution != calculatedSolution) {
-        System.out.println("Failed! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
-        System.exit(1);
+        System.err.println("Failed in case " + caseNumber + "! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
+        System.err.println("Case: " + Arrays.toString(algorithm.getCase(caseNumber)));
+//        System.exit(1);
       } else {
         System.out.println("Success! Expected: " + expectedSolution);
       }
+      System.out.println("=".repeat(10));
     }
   }
 }
