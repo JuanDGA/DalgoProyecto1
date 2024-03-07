@@ -6,20 +6,6 @@ class Algorithm {
 
   private final int casesAmount;
 
-  static class DpBlock {
-    int height;
-    int left;
-
-    public DpBlock(int height, int left) {
-      this.height = height;
-      this.left = left;
-    }
-
-    public String toString() {
-      return Integer.toString(height);
-    }
-  }
-
   public Algorithm(String input) throws FileNotFoundException {
     Scanner inputScanner = new Scanner(new FileReader(input));
 
@@ -40,41 +26,6 @@ class Algorithm {
     }
   }
 
-  private void printTowers(DpBlock[] towers) {
-    StringBuilder result = new StringBuilder();
-    int max = 0;
-    for (DpBlock t: towers) if (t.height > max) max = t.height;
-    for (int i = max; i > 0; i--) {
-      for (DpBlock tower : towers) {
-        if (tower.height >= i) {
-          result.append("#");
-        } else {
-          result.append(" ");
-        }
-      }
-      result.append("\n");
-    }
-    System.out.print(result);
-    System.out.println("*".repeat(towers.length));
-  }
-
-  /**
-   * Build a dynamic programming table for a given array of blocks.
-   * Each entry in the table represents a block and its corresponding value.
-   *
-   * @param blocks an array of blocks
-   * @return a 2D array representing the dynamic programming table
-   */
-  private DpBlock[] buildDp(int[] blocks) {
-    DpBlock[] dp = new DpBlock[blocks.length];
-    for (int i = 0; i < blocks.length; i++) {
-      int left = i == 0 ? Integer.MAX_VALUE : blocks[i - 1];
-      dp[i] = new DpBlock(blocks[i], left);
-    }
-    return dp;
-  }
-
-
   // O(N²)
 
   // SOLUTION
@@ -84,16 +35,14 @@ class Algorithm {
   // dp[i] = dp[i] + ceil((dp[i+1] - dp[i]) / 2) if dp[i] > dp[i + 1] && i < n - 1
 
 
-  public int calculateSteps(int caseToCalculate) {
-    DpBlock[] dp2 = buildDp(cases.get(caseToCalculate));
+  public long calculateSteps(int caseToCalculate) {
     int[] dp = cases.get(caseToCalculate);
 
     // Steps to move from on higher tower to a lower tower, is the difference / 2, rounded to ceil
 
     int n = dp.length;
     int i = 0;
-    int steps = 0;
-    int executed = 0;
+    long steps = 0;
     int spaceSince = 0;
 
     // I have discovered that if there is a group of towers with the same size, and then it is a higher tower,
@@ -101,12 +50,10 @@ class Algorithm {
     int max_i = 0;
     while (i < n) {
       if (i > max_i) max_i = i;
-      System.out.print("\r" + i + "-" + max_i + "-" + executed + "-" + (executed > n * n));
-      executed += 1;
       if (i == n - 1) break; // We finished :D
+      if (dp[i] > dp[i + 1]) spaceSince = i + 1;
       if (dp[i] >= dp[i + 1]) {
         i += 1;
-        if (dp[i + 1] < dp[i]) spaceSince = i + 1;
         continue;
       }
 
@@ -119,21 +66,39 @@ class Algorithm {
         dp[i - 1] -= difference;
         steps += difference;
         i++;
-      } else if (dp[i] < dp[i + 1] && i < n - 1) { // Can get from the right
-        dp[i] += canGetFromRight;
-        dp[i + 1] -= canGetFromRight;
-        steps += canGetFromRight;
-        if (i == 0 || dp[i - 1] >= dp[i]) {
-          i++;
+      } else if (dp[i] < dp[i + 1]) { // Can get from the right
+        // Here we will use the formula just if we have space
+        if (spaceSince < i) {
+          int toFill = i + 1 - spaceSince;
+          int initialHeight = dp[i];
+          int base = (dp[i + 1] - dp[i]) / (toFill + 1);
+          int rest = (dp[i + 1] - dp[i]) - base * (toFill + 1);
+          int toRemove = toFill - rest;
+
+          int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
+          steps += requiredSteps;
+          Arrays.fill(dp, spaceSince, i + 2, initialHeight + base);
+          Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
+          if (spaceSince == 0) {
+            i++;
+            spaceSince = rest;
+          } else {
+            i = 0;
+            spaceSince = 0;
+          }
         } else {
-          i--;
+          dp[i] += canGetFromRight;
+          dp[i + 1] -= canGetFromRight;
+          steps += canGetFromRight;
+          spaceSince = i + 1;
+          if (i == 0 || dp[i - 1] >= dp[i]) {
+            i++;
+          } else {
+            i--;
+          }
         }
       }
     }
-
-    System.out.println("Result: " + Arrays.toString(dp));
-
-    System.out.printf("%s -> %s\n", dp.length, executed);
 
     for (int k = 0; k < n - 1; k++) assert dp[k] >= dp[k + 1];
 
@@ -162,18 +127,19 @@ class AlgorithmTester {
   public static void validateData(String input, String output) throws FileNotFoundException {
     Algorithm algorithm = new Algorithm(input);
     Scanner outputScanner = new Scanner(new FileReader(output));
+    System.out.println("Testing " + algorithm.getCasesAmount() + " cases.");
     for (int caseNumber = 0; caseNumber < algorithm.getCasesAmount(); caseNumber++) {
-      System.out.println("=".repeat(10));
-      int expectedSolution = outputScanner.nextInt();
+      System.out.println("Case " + (caseNumber + 1) + ": " + Arrays.toString(algorithm.getCase(caseNumber)));
+      long expectedSolution = outputScanner.nextLong();
       long init = System.nanoTime();
-      int calculatedSolution = algorithm.calculateSteps(caseNumber);
-      System.out.printf("Case " + caseNumber + " took %sms\n", (double) (System.nanoTime() - init) / 1000000);
+      long calculatedSolution = algorithm.calculateSteps(caseNumber);
+      double took = (double) (System.nanoTime() - init) / 1000000;
+      System.out.printf("Case " + (caseNumber + 1) + " took %sms\n", took);
       if (expectedSolution != calculatedSolution) {
-        System.err.println("Failed in case " + caseNumber + "! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
-        System.err.println("Case: " + Arrays.toString(algorithm.getCase(caseNumber)));
-//        System.exit(1);
+        System.out.println("Failed in case " + (caseNumber + 1) + "! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
+        System.exit(1);
       } else {
-        System.out.println("Success! Expected: " + expectedSolution);
+        System.out.println("Success! Result: " + expectedSolution);
       }
       System.out.println("=".repeat(10));
     }
