@@ -1,6 +1,7 @@
 import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Scanner;
 
 class Algorithm {
 
