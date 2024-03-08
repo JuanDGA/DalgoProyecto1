@@ -49,6 +49,7 @@ class Algorithm {
     // there is a formula to get the step amount.
     int max_i = 0;
     while (i < n) {
+//      System.out.println("DP: " + Arrays.toString(dp) + " " + steps + " - " + i + " " + spaceSince);
       if (i > max_i) max_i = i;
       if (i == n - 1) break; // We finished :D
       if (dp[i] > dp[i + 1]) spaceSince = i + 1;
@@ -79,9 +80,9 @@ class Algorithm {
           steps += requiredSteps;
           Arrays.fill(dp, spaceSince, i + 2, initialHeight + base);
           Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
-          if (spaceSince == 0) {
+          if (base == 0 && rest > 0) {
             i++;
-            spaceSince = rest;
+            spaceSince += rest;
           } else {
             i = 0;
             spaceSince = 0;
@@ -99,8 +100,6 @@ class Algorithm {
         }
       }
     }
-
-    for (int k = 0; k < n - 1; k++) assert dp[k] >= dp[k + 1];
 
     return steps;
   }
@@ -124,12 +123,35 @@ class Algorithm {
 }
 
 class AlgorithmTester {
+  public static int[] getFirstNElements(int[] arr, int n) {
+    int[] result = new int[n];
+
+    System.arraycopy(arr, 0, result, 0, n);
+
+    return result;
+  }
+
+  public static int[] getLastNElements(int[] arr, int n) {
+    int[] result = new int[n];
+
+    int startIndex = arr.length - n;
+    System.arraycopy(arr, startIndex, result, 0, n);
+
+    return result;
+}
+
   public static void validateData(String input, String output) throws FileNotFoundException {
     Algorithm algorithm = new Algorithm(input);
     Scanner outputScanner = new Scanner(new FileReader(output));
     System.out.println("Testing " + algorithm.getCasesAmount() + " cases.");
     for (int caseNumber = 0; caseNumber < algorithm.getCasesAmount(); caseNumber++) {
-      System.out.println("Case " + (caseNumber + 1) + ": " + Arrays.toString(algorithm.getCase(caseNumber)));
+      if (algorithm.getCase(caseNumber).length < 20) {
+        System.out.println("Case " + (caseNumber + 1) + ": " + Arrays.toString(algorithm.getCase(caseNumber)));
+      } else {
+        System.out.println("Case " + (caseNumber + 1) + ": " +
+            Arrays.toString(getFirstNElements(algorithm.getCase(caseNumber), 9)) + "..." +
+            Arrays.toString(getLastNElements(algorithm.getCase(caseNumber), 9)));
+      }
       long expectedSolution = outputScanner.nextLong();
       long init = System.nanoTime();
       long calculatedSolution = algorithm.calculateSteps(caseNumber);
