@@ -2,29 +2,6 @@ import java.io.*;
 import java.util.*;
 
 class Algorithm {
-  private final Map<Integer, int[]> cases;
-
-  private final int casesAmount;
-
-  public Algorithm(String input) throws FileNotFoundException {
-    Scanner inputScanner = new Scanner(new FileReader(input));
-
-    int casesAmount = Integer.parseInt(inputScanner.nextLine().strip());
-
-    this.casesAmount = casesAmount;
-    this.cases = new HashMap<>(casesAmount);
-
-    for (int i = 0; i < this.casesAmount; i++) {
-      List<Integer> result = Arrays.stream(inputScanner.nextLine().strip().split(" "))
-          .map(Integer::parseInt)
-          .skip(1)
-          .toList();
-
-      int[] values = new int[result.size()];
-      for (int j = 0; j < result.size(); j++) values[j] = result.get(j);
-      cases.put(i, values);
-    }
-  }
 
   // O(N²)
 
@@ -35,9 +12,7 @@ class Algorithm {
   // dp[i] = dp[i] + ceil((dp[i+1] - dp[i]) / 2) if dp[i] > dp[i + 1] && i < n - 1
 
 
-  public long calculateSteps(int caseToCalculate) {
-    int[] dp = cases.get(caseToCalculate);
-
+  public long calculateSteps(int[] dp) {
     // Steps to move from on higher tower to a lower tower, is the difference / 2, rounded to ceil
 
     int n = dp.length;
@@ -49,7 +24,6 @@ class Algorithm {
     // there is a formula to get the step amount.
     int max_i = 0;
     while (i < n) {
-//      System.out.println("DP: " + Arrays.toString(dp) + " " + steps + " - " + i + " " + spaceSince);
       if (i > max_i) max_i = i;
       if (i == n - 1) break; // We finished :D
       if (dp[i] > dp[i + 1]) spaceSince = i + 1;
@@ -104,57 +78,41 @@ class Algorithm {
     return steps;
   }
 
-  public void exportSolution(String name) throws IOException {
+  public void exportSolution(String readFrom, String name) throws IOException {
+    Scanner scanner = new Scanner(new FileReader(readFrom));
     PrintWriter writer = new PrintWriter(new FileWriter(name));
-    for (int i = 0; i < casesAmount; i++) {
-      writer.print(calculateSteps(i));
-      if (i < casesAmount - 1) writer.println();
+    int[] towers;
+    int amount = scanner.nextInt();
+    for (int i = 0; i < amount; i++) {
+      towers = new int[scanner.nextInt()];
+      for (int j = 0; j < towers.length; j++) {
+        towers[j] = scanner.nextInt();
+      }
+      writer.print(calculateSteps(towers));
+      writer.println();
     }
     writer.close();
-  }
-
-  public int getCasesAmount() {
-    return casesAmount;
-  }
-
-  public int[] getCase(int n) {
-    return cases.get(n);
+    scanner.close();
   }
 }
 
 class AlgorithmTester {
-  public static int[] getFirstNElements(int[] arr, int n) {
-    int[] result = new int[n];
-
-    System.arraycopy(arr, 0, result, 0, n);
-
-    return result;
-  }
-
-  public static int[] getLastNElements(int[] arr, int n) {
-    int[] result = new int[n];
-
-    int startIndex = arr.length - n;
-    System.arraycopy(arr, startIndex, result, 0, n);
-
-    return result;
-}
 
   public static void validateData(String input, String output) throws FileNotFoundException {
-    Algorithm algorithm = new Algorithm(input);
+    Algorithm algorithm = new Algorithm();
+    Scanner scanner = new Scanner(new FileReader(input));
     Scanner outputScanner = new Scanner(new FileReader(output));
-    System.out.println("Testing " + algorithm.getCasesAmount() + " cases.");
-    for (int caseNumber = 0; caseNumber < algorithm.getCasesAmount(); caseNumber++) {
-      if (algorithm.getCase(caseNumber).length < 20) {
-        System.out.println("Case " + (caseNumber + 1) + ": " + Arrays.toString(algorithm.getCase(caseNumber)));
-      } else {
-        System.out.println("Case " + (caseNumber + 1) + ": " +
-            Arrays.toString(getFirstNElements(algorithm.getCase(caseNumber), 9)) + "..." +
-            Arrays.toString(getLastNElements(algorithm.getCase(caseNumber), 9)));
-      }
+    int amount = scanner.nextInt();
+    System.out.println("Testing " + amount + " cases.");
+    for (int caseNumber = 0; caseNumber < amount; caseNumber++) {
+      int size = scanner.nextInt();
       long expectedSolution = outputScanner.nextLong();
+      int[] data = new int[size];
+      for (int j = 0; j < data.length; j++) {
+        data[j] = scanner.nextInt();
+      }
       long init = System.nanoTime();
-      long calculatedSolution = algorithm.calculateSteps(caseNumber);
+      long calculatedSolution = algorithm.calculateSteps(data);
       double took = (double) (System.nanoTime() - init) / 1000000;
       System.out.printf("Case " + (caseNumber + 1) + " took %sms\n", took);
       if (expectedSolution != calculatedSolution) {
@@ -171,8 +129,8 @@ class AlgorithmTester {
 public class Project {
 
   public static void main(String[] args) throws IOException {
-    Algorithm algorithm = new Algorithm("data/P1.in");
-    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
-    algorithm.exportSolution("results/P1.out");
+    Algorithm algorithm = new Algorithm();
+//    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
+    algorithm.exportSolution("data/P1.in", "results/P1.out");
   }
 }
