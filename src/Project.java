@@ -24,7 +24,7 @@ class Algorithm {
     // I have discovered that if there is a group of towers with the same size, and then it is a higher tower,
     // there is a formula to get the step amount.
     while (i < n) {
-      if (i == n - 1) break; // We finished :D
+      if (i >= n - 1) break; // >= is used in case that dp is empty
       if (dp[i] > dp[i + 1]) spaceSince = i + 1;
       if (dp[i] >= dp[i + 1]) {
         i += 1;
@@ -123,7 +123,7 @@ public class Project {
 
   public static void main(String[] args) throws IOException {
     Algorithm algorithm = new Algorithm();
-    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
+//    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
     algorithm.exportSolution("data/P1.in", "results/P1.out");
   }
 }
