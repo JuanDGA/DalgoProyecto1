@@ -123,7 +123,7 @@ public class Project {
 
   public static void main(String[] args) throws IOException {
     Algorithm algorithm = new Algorithm();
-//    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
+    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
     algorithm.exportSolution("data/P1.in", "results/P1.out");
   }
 }
