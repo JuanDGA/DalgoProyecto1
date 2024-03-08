@@ -50,7 +50,7 @@ class Algorithm {
 
           int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
           steps += requiredSteps;
-          Arrays.fill(dp, spaceSince, i + 2, initialHeight + base);
+          Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
           Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
           if (base == 0 && rest > 0) {
             i++;
@@ -59,7 +59,7 @@ class Algorithm {
             i = 0;
             spaceSince = 0;
           }
-      } else if (dp[i] < dp[i + 1]) { // Can get from the right without distribute
+      } else if (dp[i] < dp[i + 1]) { // Can get from the right but we can't distribute
           dp[i] += canGetFromRight;
           dp[i + 1] -= canGetFromRight;
           steps += canGetFromRight;
@@ -107,7 +107,7 @@ class AlgorithmTester {
       long init = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
       long calculatedSolution = algorithm.calculateSteps(data);
       double took = (double) (ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - init) / 1000000;
-      System.out.printf("Case " + (caseNumber + 1) + " took %sms\n", took);
+      System.out.printf("Case " + (caseNumber + 1) + " took %sms.\n", took);
       if (expectedSolution != calculatedSolution) {
         System.out.println("Failed in case " + (caseNumber + 1) + "! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
         System.exit(1);
