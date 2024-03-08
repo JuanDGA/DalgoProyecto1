@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 
 class Algorithm {
@@ -22,9 +23,7 @@ class Algorithm {
 
     // I have discovered that if there is a group of towers with the same size, and then it is a higher tower,
     // there is a formula to get the step amount.
-    int max_i = 0;
     while (i < n) {
-      if (i > max_i) max_i = i;
       if (i == n - 1) break; // We finished :D
       if (dp[i] > dp[i + 1]) spaceSince = i + 1;
       if (dp[i] >= dp[i + 1]) {
@@ -33,7 +32,7 @@ class Algorithm {
       }
 
       int difference = dp[i + 1] - dp[i];
-      int canGetFromRight = (int) Math.ceil((dp[i + 1] - dp[i]) / 2.0);
+      int canGetFromRight = (int) Math.ceil(difference / 2.0);
       int canGetFromLeft = i == 0 ? 0 : (int) Math.floor((dp[i - 1] - dp[i]) / 2.0);
 
       if (i > 0 && dp[i] < dp[i - 1] + 1 && dp[i] < dp[i + 1] && canGetFromLeft >= difference) { // Can get from the left
@@ -41,13 +40,12 @@ class Algorithm {
         dp[i - 1] -= difference;
         steps += difference;
         i++;
-      } else if (dp[i] < dp[i + 1]) { // Can get from the right
+      } else if (dp[i] < dp[i + 1] && spaceSince < i) { // Can get from the right and distribute
         // Here we will use the formula just if we have space
-        if (spaceSince < i) {
           int toFill = i + 1 - spaceSince;
           int initialHeight = dp[i];
-          int base = (dp[i + 1] - dp[i]) / (toFill + 1);
-          int rest = (dp[i + 1] - dp[i]) - base * (toFill + 1);
+          int base = difference / (toFill + 1);
+          int rest = difference - base * (toFill + 1);
           int toRemove = toFill - rest;
 
           int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
@@ -61,18 +59,13 @@ class Algorithm {
             i = 0;
             spaceSince = 0;
           }
-        } else {
+      } else if (dp[i] < dp[i + 1]) { // Can get from the right without distribute
           dp[i] += canGetFromRight;
           dp[i + 1] -= canGetFromRight;
           steps += canGetFromRight;
           spaceSince = i + 1;
-          if (i == 0 || dp[i - 1] >= dp[i]) {
-            i++;
-          } else {
-            i--;
-          }
+          i += (i == 0 || dp[i - 1] >= dp[i]) ? 1 : -1;
         }
-      }
     }
 
     return steps;
@@ -111,9 +104,9 @@ class AlgorithmTester {
       for (int j = 0; j < data.length; j++) {
         data[j] = scanner.nextInt();
       }
-      long init = System.nanoTime();
+      long init = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
       long calculatedSolution = algorithm.calculateSteps(data);
-      double took = (double) (System.nanoTime() - init) / 1000000;
+      double took = (double) (ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() - init) / 1000000;
       System.out.printf("Case " + (caseNumber + 1) + " took %sms\n", took);
       if (expectedSolution != calculatedSolution) {
         System.out.println("Failed in case " + (caseNumber + 1) + "! Expected: " + expectedSolution + ", Calculated: " + calculatedSolution + ", exiting program.");
@@ -130,7 +123,7 @@ public class Project {
 
   public static void main(String[] args) throws IOException {
     Algorithm algorithm = new Algorithm();
-//    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
+    AlgorithmTester.validateData("data/P1.in", "data/P1.out");
     algorithm.exportSolution("data/P1.in", "results/P1.out");
   }
 }
