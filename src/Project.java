@@ -42,30 +42,30 @@ class Algorithm {
         i++;
       } else if (dp[i] < dp[i + 1] && spaceSince < i) { // Can get from the right and distribute
         // Here we will use the formula just if we have space
-          int toFill = i + 1 - spaceSince;
-          int initialHeight = dp[i];
-          int base = difference / (toFill + 1);
-          int rest = difference - base * (toFill + 1);
-          int toRemove = toFill - rest;
+        int toFill = i + 1 - spaceSince;
+        int initialHeight = dp[i];
+        int base = difference / (toFill + 1);
+        int rest = difference - base * (toFill + 1);
+        int toRemove = toFill - rest;
 
-          int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
-          steps += requiredSteps;
-          Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
-          Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
-          if (base == 0 && rest > 0) {
-            i++;
-            spaceSince += rest;
-          } else {
-            i = 0;
-            spaceSince = 0;
-          }
-      } else if (dp[i] < dp[i + 1]) { // Can get from the right but we can't distribute
-          dp[i] += canGetFromRight;
-          dp[i + 1] -= canGetFromRight;
-          steps += canGetFromRight;
-          spaceSince = i + 1;
-          i += (i == 0 || dp[i - 1] >= dp[i]) ? 1 : -1;
+        int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
+        steps += requiredSteps;
+        Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
+        Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
+        if (base == 0 && rest > 0) {
+          i++;
+          spaceSince += rest;
+        } else {
+          i = 0;
+          spaceSince = 0;
         }
+      } else if (dp[i] < dp[i + 1]) { // Can get from the right but we can't distribute
+        dp[i] += canGetFromRight;
+        dp[i + 1] -= canGetFromRight;
+        steps += canGetFromRight;
+        spaceSince = i + 1;
+        i += (i == 0 || dp[i - 1] >= dp[i]) ? 1 : -1;
+      }
     }
 
     return steps;
