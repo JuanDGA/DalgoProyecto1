@@ -51,7 +51,9 @@ class Algorithm {
 
         int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
         steps += requiredSteps;
-        if (base > 0) Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
+        if (base > 0) {
+          Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
+        } else dp[i + 1] = initialHeight;
         Arrays.fill(dp, spaceSince, spaceSince + rest, initialHeight + base + 1);
         if (base == 0 && rest > 0) {
           i++;
@@ -117,6 +119,8 @@ class AlgorithmTester {
       }
       System.out.println("=".repeat(10));
     }
+    scanner.close();
+    outputScanner.close();
   }
 }
 
