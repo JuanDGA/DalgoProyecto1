@@ -82,12 +82,13 @@ public class ProyectoP1 {
     writer.close();
     scanner.close();
   }
+
   public static void main(String[] args) throws IOException {
     ProyectoP1 algorithm = new ProyectoP1();
     System.out.println("Running!");
     long start = System.nanoTime();
     algorithm.exportSolution("./P1.in", "./P1.out");
     long end = System.nanoTime();
-    System.out.printf("./P1.out exported successfully in %sms%n", (end - start) / 1000000);
+    System.out.printf("./P1.out exported successfully in %sms\n", (end - start) / 1000000);
   }
 }

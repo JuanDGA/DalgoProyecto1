@@ -27,3 +27,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+
+### Input/Output ###
+/neon/*.in
+/neon/*.out
