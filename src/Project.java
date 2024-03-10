@@ -49,7 +49,7 @@ class Algorithm {
         int rest = difference - base * (toFill + 1);
         int toRemove = toFill - rest;
 
-        int requiredSteps = base * ((toFill * (toFill + 1)) / 2) + ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
+        int requiredSteps = (base + 1) * ((toFill * (toFill + 1)) / 2) - ((toRemove * (toRemove + 1)) / 2);
         steps += requiredSteps;
         if (base > 0) {
           Arrays.fill(dp, spaceSince + rest, i + 2, initialHeight + base);
